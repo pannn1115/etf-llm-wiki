@@ -1,0 +1,591 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ETF 入門：從買一檔股票，到用 ETF 組投資組合</title>
+<style>
+  :root {
+    color-scheme: light;
+    --surface: #fcfcfb;
+    --surface-2: #f2f1ee;
+    --surface-3: #e7e5df;
+    --ink: #0b0b0b;
+    --ink-2: #52514e;
+    --ink-3: #7a7974;
+    --accent: #1c5cab;
+    --accent-soft: #e6effb;
+    --warn-soft: #fbefe6;
+    --series-1: #2a78d6;
+    --series-2: #eb6834;
+    --series-3: #1baf7a;
+    --grid: #e3e2de;
+    --font: "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", "Heiti TC", system-ui, sans-serif;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; background: #2b2b29; font-family: var(--font); color: var(--ink); }
+  .stage { position: fixed; inset: 0 0 48px 0; overflow: hidden; }
+  .deck { width: 1280px; height: 720px; position: relative; background: var(--surface);
+          position: absolute; left: 0; top: 0; transform-origin: 0 0; box-shadow: 0 10px 40px rgba(0,0,0,.35); overflow: hidden; }
+  .slide { position: absolute; inset: 0; padding: 52px 72px 70px; display: none; flex-direction: column; gap: 18px; }
+  .slide.active { display: flex; }
+
+  /* type */
+  .kicker { font-size: 18px; letter-spacing: .08em; color: var(--accent); font-weight: 700; }
+  h1 { font-size: 76px; line-height: 1.1; margin: 0; letter-spacing: .01em; }
+  h2 { font-size: 42px; line-height: 1.2; margin: 0; }
+  p, li { font-size: 25px; line-height: 1.55; margin: 0; }
+  .lead { font-size: 29px; line-height: 1.5; color: var(--ink); }
+  .muted { color: var(--ink-2); }
+  .small { font-size: 19px; }
+  ul { margin: 0; padding-left: 1.1em; display: grid; gap: 8px; }
+  dfn { font-style: normal; font-weight: 700; color: var(--accent); }
+  b, strong { font-weight: 700; }
+  .num { font-variant-numeric: tabular-nums; }
+
+  .src { position: absolute; left: 72px; right: 72px; bottom: 22px; font-size: 15px; color: var(--ink-3);
+         border-top: 1px solid var(--grid); padding-top: 8px; }
+  .notes { display: none; }
+
+  /* layout helpers */
+  .row { display: flex; gap: 22px; }
+  .col { display: flex; flex-direction: column; gap: 14px; }
+  .grow { flex: 1; }
+  .card { background: var(--surface-2); border-radius: 14px; padding: 18px 22px; }
+  .card h3 { margin: 0 0 6px; font-size: 24px; }
+  .card p { font-size: 21px; line-height: 1.45; }
+  .callout { background: var(--accent-soft); border-radius: 14px; padding: 14px 20px; font-size: 22px; line-height: 1.5; }
+  .callout.warn { background: var(--warn-soft); }
+  .tag { display: inline-block; font-size: 16px; font-weight: 700; color: var(--ink-2); background: var(--surface-3);
+         border-radius: 999px; padding: 2px 12px; margin-bottom: 6px; }
+  .grid3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+  .grid2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
+
+  /* title slide */
+  .title-slide { justify-content: center; gap: 22px; background:
+      linear-gradient(135deg, var(--surface) 0%, var(--surface) 62%, var(--accent-soft) 62%, var(--accent-soft) 100%); }
+  .title-slide .sub { font-size: 34px; color: var(--ink-2); }
+  .title-slide .meta { font-size: 21px; color: var(--ink-2); margin-top: 18px; }
+  .keyhint { font-size: 17px; color: var(--ink-3); }
+  kbd { font-family: var(--font); border: 1px solid var(--ink-3); border-bottom-width: 2px; border-radius: 6px; padding: 0 6px; font-size: .9em; }
+
+  /* agenda */
+  .agenda { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px 40px; counter-reset: a; list-style: none; padding: 0; }
+  .agenda li { counter-increment: a; font-size: 27px; display: flex; gap: 14px; align-items: baseline; padding: 10px 0; border-bottom: 1px solid var(--grid); }
+  .agenda li::before { content: counter(a); font-weight: 800; color: var(--accent); font-size: 30px; width: 28px; }
+
+  /* compare */
+  .vs { display: grid; grid-template-columns: 1fr auto 1fr; gap: 18px; align-items: stretch; }
+  .vs .mid { align-self: center; font-size: 26px; color: var(--ink-3); font-weight: 700; }
+  .basket { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 8px; }
+  .basket i { width: 22px; height: 22px; border-radius: 6px; background: var(--series-1); display: block; opacity: .85; }
+  .basket.one i { background: var(--ink-2); }
+
+  table.t { border-collapse: collapse; width: 100%; font-size: 23px; }
+  table.t th, table.t td { text-align: left; padding: 12px 16px; border-bottom: 1px solid var(--grid); vertical-align: top; }
+  table.t th { color: var(--ink-2); font-weight: 700; font-size: 20px; }
+  table.t td:first-child { color: var(--ink-2); width: 120px; }
+
+  /* stats */
+  .tiles { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
+  .tile { background: var(--surface-2); border-radius: 14px; padding: 16px 20px; }
+  .tile .k { font-size: 19px; color: var(--ink-2); }
+  .tile .v { font-size: 46px; font-weight: 800; line-height: 1.15; font-variant-numeric: tabular-nums; }
+  .tile.hl { background: var(--accent-soft); }
+
+  /* flow */
+  .flow { display: flex; align-items: stretch; gap: 10px; }
+  .flow .step { flex: 1; background: var(--surface-2); border-radius: 14px; padding: 14px 16px; font-size: 23px; line-height: 1.4; }
+  .flow .step b { display: block; font-size: 32px; font-variant-numeric: tabular-nums; }
+  .flow .arrow { align-self: center; font-size: 28px; color: var(--ink-3); }
+
+  /* chart */
+  .chart { background: var(--surface); }
+  .legend { display: flex; gap: 18px; font-size: 18px; color: var(--ink-2); }
+  .legend span { display: inline-flex; align-items: center; gap: 6px; }
+  .legend i { width: 14px; height: 14px; border-radius: 3px; display: inline-block; }
+  svg text { font-family: var(--font); }
+
+  .stack { display: grid; gap: 14px; }
+  .stack .lab { font-size: 20px; color: var(--ink-2); margin-bottom: 4px; }
+  .bar { display: flex; gap: 2px; height: 46px; }
+  .seg { display: flex; align-items: center; padding: 0 14px; font-size: 19px; font-weight: 700; color: #fff; }
+  .seg.s1 { background: var(--series-1); border-radius: 0; }
+  .seg.s2 { background: var(--series-2); border-radius: 0 4px 4px 0; }
+
+  /* myths */
+  .myths { display: grid; gap: 14px; }
+  .myth { all: unset; cursor: pointer; display: block; background: var(--surface-2); border-radius: 14px; padding: 16px 22px; }
+  .myth .q { font-size: 25px; }
+  .myth .a { font-size: 22px; color: var(--ink-2); margin-top: 6px; visibility: hidden; }
+  .myth.revealed .a { visibility: visible; }
+  .myth.revealed { background: var(--accent-soft); }
+  .myth .hint { font-size: 16px; color: var(--ink-3); }
+  .myth.revealed .hint { display: none; }
+
+  .checklist { list-style: none; padding: 0; display: grid; gap: 12px; counter-reset: c; }
+  .checklist li { counter-increment: c; display: flex; gap: 16px; align-items: baseline; font-size: 26px;
+                  background: var(--surface-2); border-radius: 12px; padding: 12px 18px; }
+  .checklist li::before { content: counter(c); font-weight: 800; color: var(--accent); }
+  .checklist li span { color: var(--ink-2); font-size: 20px; }
+
+  .refs { display: grid; grid-template-columns: 1fr 1fr; gap: 10px 36px; padding-left: 0; list-style: none; }
+  .refs li { font-size: 16px; line-height: 1.4; }
+  .refs a { color: var(--accent); word-break: break-all; }
+
+  .pipe { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; font-size: 20px; }
+  .pipe span { background: var(--surface-2); border-radius: 10px; padding: 8px 12px; }
+  .pipe span.chk { background: var(--warn-soft); font-weight: 700; }
+  .pipe em { font-style: normal; color: var(--ink-3); }
+
+  /* UI */
+  .ui { position: fixed; left: 0; right: 0; bottom: 0; height: 48px; display: flex; align-items: center; gap: 12px; padding: 0 14px;
+        color: #e9e8e3; font-size: 14px; z-index: 10; }
+  .ui button { background: rgba(255,255,255,.12); color: #fff; border: 0; border-radius: 8px; padding: 6px 12px; font: inherit; cursor: pointer; }
+  .ui button:hover { background: rgba(255,255,255,.22); }
+  .ui .bar-wrap { flex: 1; height: 4px; background: rgba(255,255,255,.15); border-radius: 2px; overflow: hidden; }
+  .ui .progress { height: 100%; width: 0; background: #86b6ef; transition: width .2s; }
+  .notes-panel { position: fixed; left: 50%; transform: translateX(-50%); bottom: 56px; width: min(960px, 94vw);
+                 background: #fffef8; color: #222; border-radius: 12px; padding: 14px 18px; font-size: 17px; line-height: 1.6;
+                 box-shadow: 0 8px 30px rgba(0,0,0,.4); display: none; z-index: 11; max-height: 40vh; overflow: auto; }
+  body.show-notes .notes-panel { display: block; }
+  .notes-panel b { color: var(--accent); }
+
+  @media print {
+    @page { size: 1280px 720px; margin: 0; }
+    html, body { background: #fff; }
+    .stage { position: static; display: block; }
+    .deck { position: static; transform: none !important; box-shadow: none; height: auto; overflow: visible; }
+    .slide { display: flex !important; position: relative; width: 1280px; height: 720px; break-after: page; }
+    .myth .a { visibility: visible; }
+    .ui, .notes-panel { display: none !important; }
+  }
+</style>
+</head>
+<body>
+<div class="stage"><div class="deck" id="deck">
+
+<!-- 01 封面 -->
+<section class="slide title-slide active" data-type="title" data-title="封面">
+  <div class="kicker">LLM Wiki 教學簡報</div>
+  <h1>ETF 入門</h1>
+  <div class="sub">從買一檔股票，到用 ETF 組一個投資組合</div>
+  <div class="meta">給懂股票、但還沒買過 ETF 的你｜資料整理至 2026-11-20</div>
+  <div class="keyhint"><kbd>→</kbd> / <kbd>空白鍵</kbd> 下一頁　<kbd>←</kbd> 上一頁　<kbd>N</kbd> 講稿　<kbd>F</kbd> 全螢幕</div>
+  <aside class="notes">大家好，今天要介紹 ETF。假設大家已經知道股票是什麼，但還沒買過 ETF。這份簡報的內容全部來自我建的 LLM Wiki，每一頁下面都有來源。</aside>
+</section>
+
+<!-- 02 路線圖 -->
+<section class="slide" data-type="agenda" data-title="路線圖" data-wiki="index.md">
+  <h2>今天的 8 站</h2>
+  <ol class="agenda">
+    <li>ETF 是什麼</li>
+    <li>ETF 的種類</li>
+    <li>持有成本：內扣費用</li>
+    <li>市價 vs 淨值：折溢價</li>
+    <li>追蹤差距與追蹤誤差</li>
+    <li>配息與總報酬</li>
+    <li>資產配置</li>
+    <li>再平衡</li>
+  </ol>
+  <p class="muted small">前 6 站是「看懂一檔 ETF」，後 2 站是「把 ETF 組起來」。</p>
+  <aside class="notes">前面六站教大家看懂一檔 ETF，最後兩站教大家怎麼把幾檔 ETF 組成投資組合。</aside>
+</section>
+
+<!-- 03 ETF 是什麼 -->
+<section class="slide" data-title="ETF 是什麼" data-wiki="concepts/01-what-is-etf.md">
+  <div class="kicker">1 ／ ETF 是什麼</div>
+  <h2>ETF 是什麼？</h2>
+  <p class="lead">在交易所像股票一樣買賣的<b>基金</b>。買 1 單位，就等於買下一籃子資產的一小份。</p>
+  <div class="vs">
+    <div class="card"><h3>買一檔股票</h3><p>錢押在一家公司身上</p><div class="basket one"><i></i></div></div>
+    <div class="mid">vs</div>
+    <div class="card"><h3>買一檔 ETF</h3><p>一次買到一整籃資產</p><div class="basket"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div></div>
+  </div>
+  <ul>
+    <li>台灣正式名稱：<b>指數股票型基金</b></li>
+    <li>透過證券商下單，和一般基金的買法不同</li>
+    <li>金管會提醒：ETF <b>有賺有賠</b></li>
+  </ul>
+  <div class="src">來源：S01 證交所專題（2024-01-09）、S02 金管會提醒（2023-11-08）、S04 ETF 小學堂（2026-05-20）</div>
+  <aside class="notes">ETF 本質是基金，但它在交易所買賣，跟股票一樣用證券帳戶下單。買一檔股票是押一家公司，買一檔 ETF 是一次買一整籃。不過要記得，分散不代表不會虧，金管會特別提醒 ETF 有賺有賠。</aside>
+</section>
+
+<!-- 04 被動式 vs 主動式 -->
+<section class="slide" data-title="被動式 vs 主動式" data-wiki="concepts/01-what-is-etf.md">
+  <div class="kicker">1 ／ ETF 是什麼</div>
+  <h2>被動式 vs 主動式</h2>
+  <p><dfn>被動式</dfn>：目標是追蹤指數，不是打敗它。<dfn>主動式</dfn>：經理人主動挑選標的，想贏過基準。</p>
+  <p class="muted small">指數＝衡量市場表現的標竿，例如加權指數。</p>
+  <table class="t">
+    <tr><th></th><th>被動式</th><th>主動式</th></tr>
+    <tr><td>怎麼選股</td><td>照指數的規則</td><td>經理人自己決定</td></tr>
+    <tr><td>透明度</td><td>看指數成分</td><td>每個營業日公開當天持股</td></tr>
+    <tr><td>在台灣</td><td>2003 年第一檔</td><td>2024-12-25 正式開放</td></tr>
+  </table>
+  <div class="src">來源：S01 證交所專題（2024-01-09）、S03 e添富：主動式 ETF 開放（2024-12-31）</div>
+  <aside class="notes">台灣大部分 ETF 是被動式，它的目標只是跟上指數。主動式 ETF 在 2024 年 12 月 25 日才正式開放。小提醒：我在整理資料時發現，2024 年 1 月的官方文章還寫主動式「研擬中」，如果 AI 沒看日期就會寫錯，所以我的 Wiki 有檢查日期。</aside>
+</section>
+
+<!-- 05 種類 -->
+<section class="slide" data-title="ETF 的種類" data-wiki="concepts/02-etf-types.md">
+  <div class="kicker">2 ／ ETF 的種類</div>
+  <h2>同樣叫 ETF，裡面差很多</h2>
+  <div class="grid3">
+    <div class="card"><h3>一般市場指數</h3><p>追蹤整體市場</p></div>
+    <div class="card"><h3>策略指數</h3><p>高股息、低波動、ESG</p></div>
+    <div class="card"><h3>債券型</h3><p>標的是債券</p></div>
+    <div class="card"><h3>主動式</h3><p>代碼第六碼 A（股）、D（債）</p></div>
+    <div class="card"><h3>平衡型</h3><p>股債在同一個指數，第六碼 T</p></div>
+    <div class="card"><h3>槓桿／反向</h3><p><dfn>槓桿型</dfn>追單日正向倍數，<dfn>反向型</dfn>追單日反向倍數；第六碼 L／R</p></div>
+  </div>
+  <div class="callout">先問兩件事：它<b>追蹤什麼</b>？它<b>怎麼追</b>？</div>
+  <div class="src">來源：S02 金管會提醒（2023-11-08）、S03 e添富（2024-12-31）、S09 證交所專題：槓反 ETF（2024-01-30）</div>
+  <aside class="notes">ETF 種類很多。看代碼第六碼可以快速分辨：A 和 D 是主動式，T 是平衡型，L 是槓桿、R 是反向。下一頁特別講槓桿和反向，因為最容易誤會。</aside>
+</section>
+
+<!-- 06 槓反 -->
+<section class="slide" data-title="槓反 ETF" data-wiki="concepts/02-etf-types.md">
+  <div class="kicker">2 ／ ETF 的種類</div>
+  <h2>槓反 ETF：只追「單日」倍數</h2>
+  <div class="row grow">
+    <div class="col" style="width: 420px;">
+      <div class="card">
+        <span class="tag">證交所舉例：指數連兩天各漲 10%</span>
+        <table class="t num" style="font-size:22px">
+          <tr><td>指數</td><td>+21%</td></tr>
+          <tr><td>正 2 倍</td><td>+44%（不是 42%）</td></tr>
+          <tr><td>反 1 倍</td><td>-19%（不是 -21%）</td></tr>
+        </table>
+      </div>
+      <div class="callout warn">證交所提醒：槓反 ETF <b>不適合長期持有</b></div>
+    </div>
+    <div class="col grow chart">
+      <div class="legend"><span><i style="background:var(--series-1)"></i>指數</span><span><i style="background:var(--series-2)"></i>正 2 倍</span><span><i style="background:var(--series-3)"></i>反 1 倍</span></div>
+      <svg viewBox="0 0 600 300" width="100%" role="img" aria-label="自行試算：指數 100 到 110 再回到 100，正 2 倍與反 1 倍都剩約 98.2">
+        <g stroke="var(--grid)" stroke-width="1">
+          <line x1="70" y1="67.5" x2="460" y2="67.5"/><line x1="70" y1="122.5" x2="460" y2="122.5"/>
+          <line x1="70" y1="177.5" x2="460" y2="177.5"/><line x1="70" y1="232.5" x2="460" y2="232.5"/>
+        </g>
+        <g fill="var(--ink-3)" font-size="14" text-anchor="end">
+          <text x="60" y="72">120</text><text x="60" y="127">110</text><text x="60" y="182">100</text><text x="60" y="237">90</text>
+        </g>
+        <g fill="var(--ink-2)" font-size="15" text-anchor="middle">
+          <text x="90" y="275">第 0 天</text><text x="260" y="275">第 1 天</text><text x="440" y="275">第 2 天</text>
+        </g>
+        <g fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <polyline stroke="var(--series-1)" points="90,177.5 260,122.5 440,177.5"/>
+          <polyline stroke="var(--series-2)" points="90,177.5 260,67.5 440,187.5"/>
+          <polyline stroke="var(--series-3)" points="90,177.5 260,232.5 440,187.5"/>
+        </g>
+        <g stroke="var(--surface)" stroke-width="2">
+          <circle cx="260" cy="122.5" r="5" fill="var(--series-1)"><title>指數 第 1 天：110</title></circle>
+          <circle cx="260" cy="67.5" r="5" fill="var(--series-2)"><title>正 2 倍 第 1 天：120</title></circle>
+          <circle cx="260" cy="232.5" r="5" fill="var(--series-3)"><title>反 1 倍 第 1 天：90</title></circle>
+          <circle cx="440" cy="177.5" r="5" fill="var(--series-1)"><title>指數 第 2 天：100</title></circle>
+          <circle cx="440" cy="187.5" r="5" fill="var(--series-2)"><title>正 2 倍 第 2 天：約 98.2</title></circle>
+          <circle cx="440" cy="187.5" r="2.5" fill="var(--series-3)" stroke="none"><title>反 1 倍 第 2 天：約 98.2</title></circle>
+        </g>
+        <g font-size="15" fill="var(--ink)">
+          <text x="452" y="171">指數 100</text>
+          <text x="452" y="205">正 2、反 1 約 98.2</text>
+        </g>
+      </svg>
+      <p class="small">自行試算（假設）：指數 100→110→100 回到原點，正 2 倍和反 1 倍卻都約 <b>-1.8%</b>。</p>
+    </div>
+  </div>
+  <div class="src">來源：S09 證交所專題：槓反 ETF 不宜長抱（2024-01-30）；右圖為依 Wiki 規則自行試算</div>
+  <aside class="notes">槓桿和反向 ETF 只保證「單日」的倍數。連漲兩天，正 2 倍會多賺一點，是 44% 不是 42%。但如果市場上上下下，像右邊這樣指數漲 10% 又跌回原點，正 2 和反 1 都會虧大約 1.8%。這就是證交所說不適合長期持有的原因。</aside>
+</section>
+
+<!-- 07 內扣費用 -->
+<section class="slide" data-title="內扣費用" data-wiki="concepts/03-costs.md">
+  <div class="kicker">3 ／ 持有成本</div>
+  <h2>看不到的帳單：內扣費用</h2>
+  <p><dfn>內扣費用</dfn>：ETF 每天從<dfn>淨值</dfn>（ETF 裡資產的價值）扣掉的管理成本，不會另外寄帳單給你。</p>
+  <p class="muted">經理費（給投信）＋ 保管費（給保管銀行）＝ 總費用率的核心；另外還有換股的交易成本、指數授權費。</p>
+  <p class="small">自行試算（假設）：投入 100 萬元、每年報酬 5%、放 20 年</p>
+  <div class="tiles">
+    <div class="tile"><div class="k">費用率 0.2%</div><div class="v">約 255 萬元</div></div>
+    <div class="tile"><div class="k">費用率 1.0%</div><div class="v">約 219 萬元</div></div>
+    <div class="tile hl"><div class="k">差距</div><div class="v">約 36 萬元</div></div>
+  </div>
+  <div class="src">來源：S05 渣打：ETF 內扣費用（2026-07-24）；試算為簡化計算（每年報酬直接扣費用率）</div>
+  <aside class="notes">內扣費用不會出現在你的對帳單上，它每天從淨值裡扣。每年差不到 1%，看起來很小，但放 20 年，差距大約 36 萬元。所以費用率值得看，不過費用最低不一定最好，還要看追蹤得準不準。</aside>
+</section>
+
+<!-- 08 折溢價 -->
+<section class="slide" data-title="折溢價" data-wiki="concepts/04-premium-discount.md">
+  <div class="kicker">4 ／ 市價 vs 淨值</div>
+  <h2>一檔 ETF，兩個價格</h2>
+  <div class="grid2">
+    <div class="card"><h3>淨值</h3><p>ETF 裡的資產真正值多少</p></div>
+    <div class="card"><h3>市價</h3><p>交易所裡大家買賣的成交價</p></div>
+  </div>
+  <p><dfn>溢價</dfn>：市價 &gt; 淨值（買貴了）　<dfn>折價</dfn>：市價 &lt; 淨值</p>
+  <div class="flow">
+    <div class="step">淨值 20 元<br>市價 21 元<b>溢價 5%</b></div>
+    <div class="arrow">→</div>
+    <div class="step">淨值漲到 20.5 元<br>溢價消失</div>
+    <div class="arrow">→</div>
+    <div class="step">用 21 元買的人<b>約 -2.4%</b></div>
+  </div>
+  <p class="small muted">自行試算（假設）。下單前可先查「即時預估淨值」（iNAV）。</p>
+  <div class="src">來源：S02 金管會提醒（2023-11-08）、S04 ETF 小學堂：折溢價風險（2026-05-20）</div>
+  <aside class="notes">ETF 有兩個價格。熱門的時候大家搶著買，市價可能比淨值貴，這叫溢價。這個例子裡，就算淨值後來漲了，買太貴的人還是虧。所以下單前可以先查即時預估淨值。</aside>
+</section>
+
+<!-- 09 追蹤 -->
+<section class="slide" data-title="追蹤差距與追蹤誤差" data-wiki="concepts/05-tracking.md">
+  <div class="kicker">5 ／ 追蹤品質</div>
+  <h2>被動式 ETF 的成績單：跟指數差多少</h2>
+  <div class="grid2">
+    <div class="card"><h3>追蹤差距（TD）</h3><p><dfn>追蹤差距</dfn>＝ETF 報酬 − 指數報酬，看「差多少」</p></div>
+    <div class="card"><h3>追蹤誤差（TE）</h3><p><dfn>追蹤誤差</dfn>＝差距的標準差，看「穩不穩」</p></div>
+  </div>
+  <div class="flow">
+    <div class="step">指數一年<b>+10.0%</b></div>
+    <div class="arrow">−</div>
+    <div class="step">ETF 一年<b>+9.6%</b></div>
+    <div class="arrow">＝</div>
+    <div class="step">追蹤差距<b>-0.4 個百分點</b></div>
+  </div>
+  <p class="small muted">自行試算（假設）。差距來源：費用、交易成本、複製方式、匯率、配息時點。兩個數字都是越小越貼近指數。</p>
+  <div class="src">來源：S02 金管會提醒（2023-11-08）、S08 證交所專題：追蹤差距與追蹤誤差（2020-09-02）</div>
+  <aside class="notes">被動式 ETF 的目標是跟上指數，所以看它的成績不是看賺多少，而是看跟指數差多少。TD 看差多少，TE 看差距穩不穩。</aside>
+</section>
+
+<!-- 10 配息 -->
+<section class="slide" data-title="配息與總報酬" data-wiki="concepts/06-distributions.md">
+  <div class="kicker">6 ／ 配息</div>
+  <h2>配息不是多賺的錢</h2>
+  <div class="flow">
+    <div class="step">股價<b>50 元</b></div>
+    <div class="arrow">→</div>
+    <div class="step">配息<b>5 元</b></div>
+    <div class="arrow">→</div>
+    <div class="step">除息後約<b>45 元</b></div>
+    <div class="arrow">→</div>
+    <div class="step">漲回 50 元<b>才算填息</b></div>
+  </div>
+  <p class="lead"><dfn>總報酬</dfn>＝股息＋價差。<b>配息率 ≠ 報酬率</b>。</p>
+  <ul>
+    <li>配息是從淨值裡拿出來發給你</li>
+    <li>配息不保證；月配、季配只代表定期評估要不要配</li>
+    <li>配息頻率不是越高越好：每次都要賣股籌現金</li>
+  </ul>
+  <div class="src">來源：S10 證交所專題：收益平準金（2024-02-20）、S11 經濟日報：跳脫高配息迷思（2026-08-05）</div>
+  <aside class="notes">這是很多人最常誤會的地方。配息 5 元，股價就先少 5 元，要漲回去才算真的賺到。所以要看總報酬，不要只看配息率。</aside>
+</section>
+
+<!-- 11 收益平準金 -->
+<section class="slide" data-title="收益平準金" data-wiki="concepts/06-distributions.md">
+  <div class="kicker">6 ／ 配息</div>
+  <h2>收益平準金：穩定配息，不是加碼</h2>
+  <p><dfn>收益平準金</dfn>：有人申購時，從新進的錢按比例記帳；大額申購或贖回時，用來穩定配息率。</p>
+  <div class="flow">
+    <div class="step">證交所舉例：規模 12 萬元<br>不用平準金<b>約 3.33%</b></div>
+    <div class="arrow">→</div>
+    <div class="step">動用 800 元平準金<br>配息率<b>維持 4%</b></div>
+  </div>
+  <div class="callout">規定時間線：2023-11 金管會函令規範何時能動用 → 2025-07 公會實務指引（金管會表示<b>不是新規定</b>）</div>
+  <div class="src">來源：S06 中央社（2025-07-30）、S10 證交所專題（2024-02-20）、S11 經濟日報（2026-08-05）</div>
+  <aside class="notes">收益平準金是為了不讓新進來的人稀釋原本的配息，目的是穩定，不是讓配息變高。2025 年很多新聞說金管會出新規，但金管會澄清不是新規定，原則 2023 年就有了。這也是我做 Wiki 時特別檢查的地方。</aside>
+</section>
+
+<!-- 12 資產配置 -->
+<section class="slide" data-title="資產配置" data-wiki="concepts/07-asset-allocation.md">
+  <div class="kicker">7 ／ 組起來</div>
+  <h2>資產配置：先決定股債比例</h2>
+  <p><dfn>資產配置</dfn>：投資組合裡股票和債券的比例，依自己的目標、年齡、風險承受度決定。</p>
+  <div class="grid3">
+    <div class="card"><h3>台股 ETF</h3><p>受台股盤勢影響</p></div>
+    <div class="card"><h3>海外股票型</h3><p>受國際情勢與匯率影響</p></div>
+    <div class="card"><h3>債券型</h3><p>和利率、央行政策有關</p></div>
+  </div>
+  <p>風險來源不同，組在一起才有分散的效果；平衡型 ETF 則是一檔裡就同時有股和債。</p>
+  <p class="small muted">本簡報只講概念，不提供「幾歲該配幾成股票」的建議。</p>
+  <div class="src">來源：S03 e添富（2024-12-31）、S04 ETF 小學堂（2026-05-20）、S07 Vanguard: Rebalancing your portfolio</div>
+  <aside class="notes">前面教的是看懂一檔 ETF，接下來是怎麼組合。最重要的第一步是決定股債比例，這個比例大致決定你要承擔多少風險。比例要看自己的目標，所以我不會建議大家配幾成。</aside>
+</section>
+
+<!-- 13 再平衡 -->
+<section class="slide" data-title="再平衡" data-wiki="concepts/08-rebalancing.md">
+  <div class="kicker">8 ／ 組起來</div>
+  <h2>再平衡：把跑掉的比例拉回來</h2>
+  <p><dfn>再平衡</dfn>：股債比例偏離目標時調回來，目的是<b>管理風險</b>，不是賺更多。</p>
+  <div class="stack">
+    <div><div class="lab">一開始（目標）</div><div class="bar"><div class="seg s1" style="width:70%">股票 70%</div><div class="seg s2" style="width:30%">債券 30%</div></div></div>
+    <div><div class="lab">股票漲 36%、債券不變</div><div class="bar"><div class="seg s1" style="width:76%">股票 76%</div><div class="seg s2" style="width:24%">債券 24%</div></div></div>
+    <div><div class="lab">再平衡後：約 7.56 萬元從股票移到債券</div><div class="bar"><div class="seg s1" style="width:70%">股票 70%</div><div class="seg s2" style="width:30%">債券 30%</div></div></div>
+  </div>
+  <p class="small muted">自行試算（假設，100 萬元）。方法：定期、門檻、混合；Vanguard 認為對許多人每年一次就好。</p>
+  <div class="src">來源：S07 Vanguard: Rebalancing your portfolio（無日期）</div>
+  <aside class="notes">市場漲跌會讓比例跑掉。股票大漲後，股票比例變高，風險也變高。再平衡就是把多的部分移回去。Vanguard 認為太頻繁沒必要，很多人一年一次就夠。</aside>
+</section>
+
+<!-- 14 檢查清單 -->
+<section class="slide" data-title="買前檢查清單" data-wiki="concepts/02-etf-types.md,concepts/03-costs.md,concepts/04-premium-discount.md,concepts/05-tracking.md,concepts/06-distributions.md">
+  <div class="kicker">整理</div>
+  <h2>買 ETF 前，先看這 5 件事</h2>
+  <ol class="checklist">
+    <li>它追蹤什麼？怎麼追？<span>被動／主動、指數類型、是不是槓反</span></li>
+    <li>內扣費用多少？<span>每天從淨值扣</span></li>
+    <li>現在有沒有溢價？<span>先查即時預估淨值</span></li>
+    <li>追蹤差距大不大？<span>看 TD 和 TE</span></li>
+    <li>配息從哪裡來？<span>看總報酬，查配息組成</span></li>
+  </ol>
+  <div class="src">來源：S02 金管會提醒（2023-11-08）、S04（2026-05-20）、S05（2026-07-24）、S08（2020-09-02）、S10（2024-02-20）</div>
+  <aside class="notes">把前面六站整理成五個問題。下次看到一檔 ETF，可以先用這五個問題檢查。</aside>
+</section>
+
+<!-- 15 常見誤解 -->
+<section class="slide" data-title="三個常見誤解" data-wiki="concepts/01-what-is-etf.md,concepts/02-etf-types.md,concepts/06-distributions.md">
+  <div class="kicker">小測驗</div>
+  <h2>對還是錯？（點一下看答案）</h2>
+  <div class="myths">
+    <button class="myth"><div class="q">「配息率 10%，就是一年賺 10%」</div><div class="a">✗ 錯。配息從淨值扣，要看總報酬。</div><div class="hint">點我看答案</div></button>
+    <button class="myth"><div class="q">「正 2 倍 ETF 抱一年，就是指數一年的 2 倍」</div><div class="a">✗ 錯。它只追單日倍數，長期會偏離。</div><div class="hint">點我看答案</div></button>
+    <button class="myth"><div class="q">「ETF 很分散，所以不會虧」</div><div class="a">✗ 錯。金管會提醒 ETF 有賺有賠。</div><div class="hint">點我看答案</div></button>
+  </div>
+  <div class="src">來源：S02 金管會提醒（2023-11-08）、S09 證交所專題（2024-01-30）、S11 經濟日報（2026-08-05）</div>
+  <aside class="notes">最後來個小測驗。請大家先猜對或錯，我再點開答案。三題都是錯的。</aside>
+</section>
+
+<!-- 16 回顧 -->
+<section class="slide" data-type="end" data-title="重點回顧">
+  <div class="kicker">重點回顧</div>
+  <h2>今天帶走 4 句話</h2>
+  <ul>
+    <li>ETF ＝ 一籃子資產，有賺有賠</li>
+    <li>看一檔 ETF：成本、折溢價、追蹤差距</li>
+    <li>配息不是多賺的錢，要看總報酬</li>
+    <li>用股債比例＋再平衡，管理自己的風險</li>
+  </ul>
+  <div class="callout warn">本簡報僅供教學，不構成投資建議。資料整理至 2026-11-20，數字與規定可能改變，請以官方最新資訊為準。</div>
+  <aside class="notes">今天的四個重點。最後提醒，這份簡報只是教學，不是投資建議。謝謝大家。</aside>
+</section>
+
+<!-- 17 來源 -->
+<section class="slide" data-type="refs" data-title="資料來源">
+  <h2>資料來源（Wiki 共 ingest 11 篇）</h2>
+  <ul class="refs">
+    <li>S01 證交所專題：股票 ETF 特性及風險（2024-01-09）<br><a href="https://www.twse.com.tw/downloads/zh/ETF/concept01.pdf">twse.com.tw/downloads/zh/ETF/concept01.pdf</a></li>
+    <li>S02 金管會提醒投資 ETF 應考量自身需求（2023-11-08）<br><a href="https://www.twse.com.tw/zh/ETFortune/newsDetail/ff8080818b7e232e018bacd925a600f9">twse.com.tw e添富</a></li>
+    <li>S03 主動式 ETF 與被動式多資產 ETF 正式開放（2024-12-31）<br><a href="https://www.twse.com.tw/zh/ETFortune/hotetf/8a8216d6942a222b01942ac0163a0002">twse.com.tw e添富</a></li>
+    <li>S04 ETF 小學堂：折溢價風險（2026-05-20）<br><a href="https://www.twse.com.tw/zh/ETFortune/advisorDoc/8a8216d69e2f5671019e42ec0a0a004d">twse.com.tw e添富</a></li>
+    <li>S05 渣打：ETF 內扣費用（2026-07-24）<br><a href="https://www.sc.com/tw/investment/wealthinsights/etf-fee/">sc.com/tw/investment/wealthinsights/etf-fee</a></li>
+    <li>S06 中央社：金管會澄清配息指引並非新規（2025-07-30）<br><a href="https://smart.businessweekly.com.tw/Channel/IndepArticle.aspx?id=6019991">smart.businessweekly.com.tw</a></li>
+    <li>S07 Vanguard: Rebalancing your portfolio（無日期）<br><a href="https://investor.vanguard.com/investor-resources-education/portfolio-management/rebalancing-your-portfolio">investor.vanguard.com</a></li>
+    <li>S08 證交所專題：追蹤差距與追蹤誤差（2020-09-02）<br><a href="https://www.twse.com.tw/downloads/zh/ETF/topic12.pdf">twse.com.tw/downloads/zh/ETF/topic12.pdf</a></li>
+    <li>S09 證交所專題：槓反 ETF 不宜長抱（2024-01-30）<br><a href="https://www.twse.com.tw/downloads/zh/ETF/concept04.pdf">twse.com.tw/downloads/zh/ETF/concept04.pdf</a></li>
+    <li>S10 證交所專題：收益平準金（2024-02-20）<br><a href="https://www.twse.com.tw/downloads/zh/ETF/concept16.pdf">twse.com.tw/downloads/zh/ETF/concept16.pdf</a></li>
+    <li>S11 經濟日報：跳脫高配息迷思（2026-08-05）<br><a href="https://money.udn.com/money/amp/story/5607/9673190">money.udn.com</a></li>
+  </ul>
+  <aside class="notes">所有內容都來自這 11 篇來源，每篇都有日期。</aside>
+</section>
+
+<!-- 18 附錄：怎麼做的 -->
+<section class="slide" data-type="appendix" data-title="附錄：這份簡報怎麼產生">
+  <div class="kicker">附錄</div>
+  <h2>這份簡報怎麼產生的？</h2>
+  <div class="pipe">
+    <span>討論範圍</span><em>→</em><span>取得資料</span><em>→</em><span class="chk">來源驗證</span><em>→</em>
+    <span>Ingest 來源卡</span><em>→</em><span>生成 Wiki</span><em>→</em><span class="chk">Wiki 檢查</span><em>→</em>
+    <span>查詢 Wiki</span><em>→</em><span>生成簡報</span><em>→</em><span class="chk">簡報檢查</span>
+  </div>
+  <ul>
+    <li>橘色是檢查節點；沒通過就退回前一步重做</li>
+    <li>每句話都有來源（Sxx）；有數字就要有年份，或標明假設</li>
+    <li>試算數字用程式重算；簡報上的數字必須在 Wiki 裡找得到</li>
+  </ul>
+  <p class="small muted">完整流程圖與執行紀錄：docs/02-workflow.md、docs/03-run-record.md</p>
+  <aside class="notes">這一頁給老師和同學參考：內容是怎麼從 Wiki 產生的、哪裡有檢查。</aside>
+</section>
+
+</div></div>
+
+<div class="notes-panel" id="notesPanel"></div>
+<div class="ui">
+  <button id="prev" aria-label="上一頁">←</button>
+  <span id="counter">1 / 1</span>
+  <button id="next" aria-label="下一頁">→</button>
+  <div class="bar-wrap"><div class="progress" id="progress"></div></div>
+  <button id="notesBtn">講稿 (N)</button>
+  <button id="fsBtn">全螢幕 (F)</button>
+</div>
+
+<script>
+(function () {
+  var deck = document.getElementById('deck');
+  var slides = Array.prototype.slice.call(document.querySelectorAll('.slide'));
+  var counter = document.getElementById('counter');
+  var progress = document.getElementById('progress');
+  var notesPanel = document.getElementById('notesPanel');
+  var i = 0;
+
+  var stage = document.querySelector('.stage');
+  function fit() {
+    var w = stage.clientWidth, h = stage.clientHeight;
+    var s = Math.min(w / 1280, h / 720);
+    deck.style.transform = 'scale(' + s + ')';
+    deck.style.left = Math.round((w - 1280 * s) / 2) + 'px';
+    deck.style.top = Math.round((h - 720 * s) / 2) + 'px';
+  }
+
+  function show(n) {
+    i = Math.max(0, Math.min(slides.length - 1, n));
+    slides.forEach(function (el, k) { el.classList.toggle('active', k === i); });
+    counter.textContent = (i + 1) + ' / ' + slides.length;
+    progress.style.width = ((i + 1) / slides.length * 100) + '%';
+    var note = slides[i].querySelector('.notes');
+    notesPanel.innerHTML = '<b>講稿｜' + (slides[i].dataset.title || '') + '</b><br>' + (note ? note.innerHTML : '（這張沒有講稿）');
+    if (location.hash !== '#' + (i + 1)) history.replaceState(null, '', '#' + (i + 1));
+  }
+
+  document.addEventListener('keydown', function (e) {
+    if (['ArrowRight', 'PageDown', ' ', 'Enter'].indexOf(e.key) >= 0) { e.preventDefault(); show(i + 1); }
+    else if (['ArrowLeft', 'PageUp', 'Backspace'].indexOf(e.key) >= 0) { e.preventDefault(); show(i - 1); }
+    else if (e.key === 'Home') show(0);
+    else if (e.key === 'End') show(slides.length - 1);
+    else if (e.key === 'n' || e.key === 'N') document.body.classList.toggle('show-notes');
+    else if (e.key === 'f' || e.key === 'F') toggleFs();
+  });
+
+  function toggleFs() {
+    try {
+      if (!document.fullscreenElement) document.documentElement.requestFullscreen();
+      else document.exitFullscreen();
+    } catch (err) { /* fullscreen not allowed here */ }
+  }
+
+  document.getElementById('prev').onclick = function () { show(i - 1); };
+  document.getElementById('next').onclick = function () { show(i + 1); };
+  document.getElementById('notesBtn').onclick = function () { document.body.classList.toggle('show-notes'); };
+  document.getElementById('fsBtn').onclick = toggleFs;
+
+  Array.prototype.forEach.call(document.querySelectorAll('.myth'), function (b) {
+    b.addEventListener('click', function (e) { e.stopPropagation(); b.classList.toggle('revealed'); });
+  });
+
+  var x0 = null;
+  document.addEventListener('touchstart', function (e) { x0 = e.touches[0].clientX; }, { passive: true });
+  document.addEventListener('touchend', function (e) {
+    if (x0 === null) return;
+    var dx = e.changedTouches[0].clientX - x0;
+    if (Math.abs(dx) > 50) show(i + (dx < 0 ? 1 : -1));
+    x0 = null;
+  });
+
+  window.addEventListener('resize', fit);
+  window.addEventListener('hashchange', function () {
+    var n = parseInt(location.hash.slice(1), 10);
+    if (!isNaN(n) && n - 1 !== i) show(n - 1);
+  });
+  fit();
+  var start = parseInt(location.hash.slice(1), 10);
+  show(isNaN(start) ? 0 : start - 1);
+})();
+</script>
+</body>
+</html>

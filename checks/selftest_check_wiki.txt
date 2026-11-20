@@ -1,0 +1,11 @@
+check_wiki.py
+來源卡 11 張｜概念頁 9 頁｜檢查條目 97 條
+錯誤 7 個
+  - W3 99-selftest.md: 沒有來源標記 → - 這一句沒有來源標記
+  - W3 99-selftest.md: 引用不存在的來源 S99 → - 引用不存在的來源 [S99]
+  - W4 99-selftest.md: 數字沒有年份或「假設/舉例」標記 → - 這檔 ETF 有 300 檔成分股 [S01]
+  - W5 99-selftest.md: 投資建議語氣（首選）→ - 高股息 ETF 是存股首選 [S02]
+  - W6 99-selftest.md: 過期/錯誤說法 [active-etf-not-open] 主動式 ETF 已在 2024-12-25 開放；提到舊說法時要同時引用 S03 → - 主動式 ETF 在台灣還在研擬中 [S01]
+  - W6 99-selftest.md: 過期/錯誤說法 [fsc-new-rule] 金管會表示 2025-07 的配息實務指引不是新規定（S06） → - 金管會發布配息新規 [S06]
+  - W6 99-selftest.md: 過期/錯誤說法 [leveraged-long-hold] 證交所提醒槓反 ETF 不適合長期持有（S09） → - 槓反 ETF 適合長期持有 [S09]
+結果：FAIL

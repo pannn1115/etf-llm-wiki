@@ -1,0 +1,7 @@
+check_slides.py
+投影片 18 張｜專有名詞 14 個（出現 14 個）
+錯誤 3 個
+  - D3 第 06 張〈槓反 ETF〉: 數字「42%」不在對應 Wiki 頁（concepts/02-etf-types.md）
+  - D3 第 06 張〈槓反 ETF〉: 數字「-21%」不在對應 Wiki 頁（concepts/02-etf-types.md）
+  - D5 第 07 張〈內扣費用〉: 「淨值」第一次出現，但這張沒有用 <dfn> 解釋
+結果：FAIL

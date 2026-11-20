@@ -1,0 +1,23 @@
+verify_numbers.py
+頁面 | 項目 | 程式算出 | Wiki 寫的 | 結果
+02-etf-types.md | 指數兩天各漲 10% 的累計 | 21% | +21% | OK
+02-etf-types.md | 正 2 倍累計 | 44% | +44% | OK
+02-etf-types.md | 反 1 倍累計 | -19% | -19% | OK
+02-etf-types.md | 盤整時正 2 倍 | -1.8% | -1.8% | OK
+02-etf-types.md | 盤整時反 1 倍 | -1.8% | -1.8% | OK
+03-costs.md | 年報酬扣掉 0.40% 費用 | 4.6% | 4.6% | OK
+03-costs.md | 費用率 0.2% 20 年後（萬元） | 255 萬元 | 255 萬元 | OK
+03-costs.md | 費用率 1.0% 20 年後（萬元） | 219 萬元 | 219 萬元 | OK
+03-costs.md | 兩者差距（萬元） | 36 萬元 | 36 萬元 | OK
+04-premium-discount.md | 溢價幅度 | 5% | 溢價 5% | OK
+04-premium-discount.md | 溢價消失後買方報酬 | -2.4% | -2.4% | OK
+05-tracking.md | 追蹤差距（百分點） | -0.4 個百分點 | -0.4 個百分點 | OK
+06-distributions.md | 50 元配 5 元的除息參考價 | 45 元 | 45 元 | OK
+06-distributions.md | 可動用平準金 | 800 元 | 800 元 | OK
+06-distributions.md | 規模 12 萬、不用平準金配息率 | 3.33% | 3.33% | OK
+06-distributions.md | 規模 12 萬、加平準金配息率 | 4% | 4% | OK
+08-rebalancing.md | 股票漲 36% 後金額（萬元） | 95.2 萬元 | 95.2 萬元 | OK
+08-rebalancing.md | 股票占比 | 76.0% | 76.0% | OK
+08-rebalancing.md | 要移到債券的金額（萬元） | 7.56 萬元 | 7.56 萬元 | OK
+共 19 項，錯誤 0 項
+結果：PASS
